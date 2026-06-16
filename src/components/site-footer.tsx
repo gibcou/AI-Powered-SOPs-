@@ -6,6 +6,9 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-10 text-sm text-slate-500 sm:flex-row">
         <p>© {new Date().getFullYear()} SOPilot. All rights reserved.</p>
         <div className="flex gap-6">
+          <Link href="/demo" className="hover:text-slate-700">
+            Live demo
+          </Link>
           <Link href="/pricing" className="hover:text-slate-700">
             Pricing
           </Link>

@@ -91,10 +91,10 @@ export default function Home() {
                 Start your free trial <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/pricing"
+                href="/demo"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-6 py-3 text-base font-semibold text-slate-700 hover:bg-slate-50"
               >
-                View pricing
+                Try the live demo
               </Link>
             </div>
             <p className="mt-4 text-sm text-slate-500">

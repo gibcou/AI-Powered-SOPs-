@@ -19,6 +19,9 @@ export function SiteNav() {
           <Link href="/pricing" className="hover:text-slate-900">
             Pricing
           </Link>
+          <Link href="/demo" className="hover:text-slate-900">
+            Live demo
+          </Link>
         </nav>
         <div className="flex items-center gap-3">
           <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-slate-900">
