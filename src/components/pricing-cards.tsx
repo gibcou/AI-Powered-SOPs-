@@ -4,7 +4,7 @@ import { PLANS } from "@/lib/plans";
 
 export function PricingCards({ ctaHref = "/signup" }: { ctaHref?: string }) {
   return (
-    <div className="grid gap-8 sm:grid-cols-2">
+    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
       {(Object.entries(PLANS) as [keyof typeof PLANS, typeof PLANS.STARTER][]).map(
         ([key, plan]) => {
           const highlighted = key === "PRO";
@@ -53,6 +53,33 @@ export function PricingCards({ ctaHref = "/signup" }: { ctaHref?: string }) {
           );
         },
       )}
+
+      <div className="relative flex flex-col rounded-2xl border border-slate-200 bg-white p-8 text-slate-900">
+        <h3 className="text-lg font-semibold">Enterprise</h3>
+        <p className="mt-4 flex items-baseline gap-1">
+          <span className="text-4xl font-bold">Custom</span>
+        </p>
+        <ul className="mt-6 flex-1 space-y-3 text-sm">
+          {[
+            "For businesses with 25+ employees",
+            "Unlimited AI-generated SOPs",
+            "Unlimited team member seats",
+            "Dedicated onboarding & support",
+            "Custom contract & invoicing",
+          ].map((feature) => (
+            <li key={feature} className="flex items-start gap-2">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-indigo-600" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <a
+          href="mailto:hello@sopilot.app?subject=Enterprise%20plan%20inquiry"
+          className="mt-8 inline-flex items-center justify-center rounded-full border border-indigo-600 px-5 py-3 text-sm font-semibold text-indigo-600 hover:bg-indigo-50"
+        >
+          Contact us for 25+ employees
+        </a>
+      </div>
     </div>
   );
 }
