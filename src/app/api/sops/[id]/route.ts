@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getBusinessWithAccess } from "@/lib/access";
 
 async function getOwnedSop(sopId: string, businessId: string) {
   const sop = await prisma.sop.findUnique({ where: { id: sopId } });
@@ -13,6 +14,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const session = await auth();
   if (!session?.user?.businessId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const access = await getBusinessWithAccess(session.user.businessId);
+  if (!access?.hasActiveSubscription) {
+    return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
   const { id } = await params;
   const sop = await getOwnedSop(id, session.user.businessId);
@@ -36,6 +41,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const session = await auth();
   if (!session?.user?.businessId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const access = await getBusinessWithAccess(session.user.businessId);
+  if (!access?.hasActiveSubscription) {
+    return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
   const { id } = await params;
   const sop = await getOwnedSop(id, session.user.businessId);

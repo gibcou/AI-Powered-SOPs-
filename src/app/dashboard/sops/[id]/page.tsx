@@ -1,12 +1,18 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getBusinessWithAccess } from "@/lib/access";
 import { SopDetail } from "@/components/sop-detail";
 
 export default async function SopPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
   const businessId = session!.user.businessId!;
+
+  const access = await getBusinessWithAccess(businessId);
+  if (!access?.hasActiveSubscription) {
+    redirect("/dashboard");
+  }
 
   const sop = await prisma.sop.findUnique({ where: { id } });
   if (!sop || sop.businessId !== businessId) {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, Lock } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getBusinessWithAccess } from "@/lib/access";
@@ -14,34 +14,50 @@ export default async function DashboardPage() {
     prisma.sop.findMany({ where: { businessId }, orderBy: { updatedAt: "desc" } }),
   ]);
 
-  const disabled = !access?.hasActiveSubscription || !access.canCreateSop;
-  let disabledReason: string | undefined;
   if (!access?.hasActiveSubscription) {
-    disabledReason = "Subscribe to a plan to start generating SOPs.";
-  } else if (!access.canCreateSop) {
-    disabledReason = `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade in Billing to add more.`;
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">SOP Library</h1>
+          <p className="mt-1 text-sm text-slate-500">Subscribe to access your SOP library.</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center">
+          <Lock className="mx-auto h-8 w-8 text-amber-600" />
+          <h2 className="mt-3 text-lg font-semibold text-amber-900">
+            {sops.length > 0
+              ? `${sops.length} SOP${sops.length === 1 ? "" : "s"} are locked`
+              : "Your library is empty"}
+          </h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-amber-800">
+            {sops.length > 0
+              ? "Your account doesn't have an active subscription, so your SOPs — including any public share links — are hidden until you resubscribe. Reactivate your plan to get them back instantly."
+              : "Subscribe to a plan to start generating AI-written SOPs for your business."}
+          </p>
+          <Link
+            href="/dashboard/billing"
+            className="mt-5 inline-flex items-center justify-center rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            {sops.length > 0 ? "Reactivate subscription" : "Choose a plan"}
+          </Link>
+        </div>
+      </div>
+    );
   }
+
+  const disabled = !access.canCreateSop;
+  const disabledReason = disabled
+    ? `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade in Billing to add more.`
+    : undefined;
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">SOP Library</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {access?.hasActiveSubscription
-            ? `${access.sopCount} of ${access.sopLimit} SOPs used on the ${access.plan?.name} plan`
-            : "Subscribe to start generating AI-written SOPs."}
+          {access.sopCount} of {access.sopLimit} SOPs used on the {access.plan?.name} plan
         </p>
       </div>
-
-      {!access?.hasActiveSubscription && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Your account doesn&apos;t have an active subscription yet.{" "}
-          <Link href="/dashboard/billing" className="font-semibold underline">
-            Choose a plan
-          </Link>{" "}
-          to start generating SOPs.
-        </div>
-      )}
 
       <NewSopForm disabled={disabled} disabledReason={disabledReason} />
 

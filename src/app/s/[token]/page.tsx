@@ -1,11 +1,27 @@
 import { notFound } from "next/navigation";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, Lock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { getBusinessWithAccess } from "@/lib/access";
 
 export default async function SharedSopPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const sop = await prisma.sop.findUnique({ where: { shareToken: token } });
   if (!sop) notFound();
+
+  const access = await getBusinessWithAccess(sop.businessId);
+  if (!access?.hasActiveSubscription) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
+        <div className="max-w-sm text-center">
+          <Lock className="mx-auto h-8 w-8 text-slate-400" />
+          <h1 className="mt-3 text-lg font-semibold text-slate-900">This SOP is no longer available</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            The business that shared this link doesn&apos;t have an active SOPilot subscription right now.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const responsibilities = (sop.responsibilities as string[] | null) ?? [];
   const toolsNeeded = (sop.toolsNeeded as string[] | null) ?? [];

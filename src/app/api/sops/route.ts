@@ -11,6 +11,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const access = await getBusinessWithAccess(session.user.businessId);
+  if (!access?.hasActiveSubscription) {
+    return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
+  }
+
   const sops = await prisma.sop.findMany({
     where: { businessId: session.user.businessId },
     orderBy: { updatedAt: "desc" },
