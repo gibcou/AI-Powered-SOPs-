@@ -38,9 +38,15 @@ const FEATURES = [
   },
   {
     icon: ShieldCheck,
-    title: "Consistency you can audit",
+    title: "Sign-off tracking & review reminders",
     description:
-      "Standardized procedures reduce mistakes, speed up onboarding, and make it easy to prove you follow your own process.",
+      "Track who's acknowledged each SOP, and get flagged automatically when a procedure hasn't been reviewed in 90 days.",
+  },
+  {
+    icon: Sparkles,
+    title: "Ask AI about your processes",
+    description:
+      "Get instant, grounded answers to operational questions — straight from your own SOP library, not generic advice.",
   },
 ];
 

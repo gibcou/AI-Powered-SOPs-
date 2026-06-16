@@ -137,6 +137,8 @@ model Sop {
 
   shareToken String? @unique
 
+  lastReviewedAt DateTime @default(now())
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -144,4 +146,17 @@ model Sop {
   business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   createdById String?
+
+  acknowledgments Acknowledgment[]
+}
+
+model Acknowledgment {
+  id    String @id @default(cuid())
+  name  String
+  email String?
+
+  acknowledgedAt DateTime @default(now())
+
+  sopId String
+  sop   Sop    @relation(fields: [sopId], references: [id], onDelete: Cascade)
 }

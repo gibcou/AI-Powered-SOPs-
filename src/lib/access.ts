@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { PLANS } from "@/lib/plans";
 
+export const REVIEW_INTERVAL_DAYS = 90;
+
+export function daysSince(date: Date) {
+  return Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 export async function getBusinessWithAccess(businessId: string) {
   const business = await prisma.business.findUnique({
     where: { id: businessId },

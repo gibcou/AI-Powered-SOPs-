@@ -9,7 +9,18 @@ import {
   Link2,
   Trash2,
   CheckCircle2,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
+
+const REVIEW_INTERVAL_DAYS = 90;
+
+type Acknowledgment = {
+  id: string;
+  name: string;
+  email: string | null;
+  acknowledgedAt: string;
+};
 
 type SopData = {
   id: string;
@@ -23,6 +34,9 @@ type SopData = {
   toolsNeeded: string[];
   steps: { title: string; details: string }[];
   shareToken: string | null;
+  lastReviewedAt: string;
+  daysSinceReview: number;
+  acknowledgments: Acknowledgment[];
 };
 
 export function SopDetail({ sop: initialSop }: { sop: SopData }) {
@@ -35,6 +49,20 @@ export function SopDetail({ sop: initialSop }: { sop: SopData }) {
       : null,
   );
   const [copied, setCopied] = useState(false);
+  const [markingReviewed, setMarkingReviewed] = useState(false);
+
+  const needsReview = sop.daysSinceReview >= REVIEW_INTERVAL_DAYS;
+
+  async function handleMarkReviewed() {
+    setMarkingReviewed(true);
+    const res = await fetch(`/api/sops/${sop.id}/review`, { method: "POST" });
+    const data = await res.json();
+    setMarkingReviewed(false);
+    if (res.ok) {
+      setSop((prev) => ({ ...prev, lastReviewedAt: data.lastReviewedAt, daysSinceReview: 0 }));
+      router.refresh();
+    }
+  }
 
   async function saveField(patch: Partial<SopData>) {
     setSaving(true);
@@ -183,6 +211,13 @@ export function SopDetail({ sop: initialSop }: { sop: SopData }) {
             <Download className="h-3.5 w-3.5" /> Export PDF
           </button>
           <button
+            onClick={handleMarkReviewed}
+            disabled={markingReviewed}
+            className="inline-flex items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" /> Mark as reviewed
+          </button>
+          <button
             onClick={handleDelete}
             className="inline-flex items-center gap-1 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
           >
@@ -195,6 +230,16 @@ export function SopDetail({ sop: initialSop }: { sop: SopData }) {
         <div className="rounded-lg bg-indigo-50 px-4 py-2 text-sm text-indigo-700">
           Public link: <span className="font-mono">{shareUrl}</span>
         </div>
+      )}
+
+      {needsReview ? (
+        <div className="rounded-lg bg-amber-50 px-4 py-2 text-sm text-amber-800">
+          This SOP hasn&apos;t been reviewed in {sop.daysSinceReview} days. Confirm it&apos;s still accurate and mark it as reviewed.
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400">
+          Last reviewed {sop.daysSinceReview === 0 ? "today" : `${sop.daysSinceReview} day${sop.daysSinceReview === 1 ? "" : "s"} ago`}.
+        </p>
       )}
 
       <div className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6">
@@ -255,6 +300,31 @@ export function SopDetail({ sop: initialSop }: { sop: SopData }) {
       </div>
 
       {saving && <p className="text-xs text-slate-400">Saving...</p>}
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <Users className="h-4 w-4 text-indigo-600" /> Acknowledgments
+        </h3>
+        {sop.acknowledgments.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-500">
+            No one has acknowledged this SOP yet. Share the public link so staff can read and sign off on it.
+          </p>
+        ) : (
+          <ul className="mt-3 divide-y divide-slate-100">
+            {sop.acknowledgments.map((ack) => (
+              <li key={ack.id} className="flex items-center justify-between py-2 text-sm">
+                <div>
+                  <p className="font-medium text-slate-900">{ack.name}</p>
+                  {ack.email && <p className="text-xs text-slate-500">{ack.email}</p>}
+                </div>
+                <span className="text-xs text-slate-400">
+                  {new Date(ack.acknowledgedAt).toLocaleDateString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

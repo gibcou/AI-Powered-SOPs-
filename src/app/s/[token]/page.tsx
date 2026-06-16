@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ClipboardCheck, Lock } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getBusinessWithAccess } from "@/lib/access";
+import { AcknowledgeForm } from "@/components/acknowledge-form";
 
 export default async function SharedSopPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -85,6 +86,10 @@ export default async function SharedSopPage({ params }: { params: Promise<{ toke
               <p className="text-sm text-slate-600">{sop.safetyNotes}</p>
             </Section>
           )}
+
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <AcknowledgeForm token={token} />
+          </div>
         </div>
       </div>
     </div>

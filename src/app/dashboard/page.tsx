@@ -1,9 +1,13 @@
 import Link from "next/link";
-import { FileText, Lock } from "lucide-react";
+import { FileText, Lock, AlertTriangle } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getBusinessWithAccess } from "@/lib/access";
+import { getBusinessWithAccess, daysSince, REVIEW_INTERVAL_DAYS } from "@/lib/access";
 import { NewSopForm } from "@/components/new-sop-form";
+
+function needsReview(lastReviewedAt: Date) {
+  return daysSince(lastReviewedAt) >= REVIEW_INTERVAL_DAYS;
+}
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -50,6 +54,8 @@ export default async function DashboardPage() {
     ? `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade in Billing to add more.`
     : undefined;
 
+  const dueForReview = sops.filter((sop) => needsReview(sop.lastReviewedAt));
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,6 +64,16 @@ export default async function DashboardPage() {
           {access.sopCount} of {access.sopLimit} SOPs used on the {access.plan?.name} plan
         </p>
       </div>
+
+      {dueForReview.length > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <p className="text-sm text-amber-800">
+            {dueForReview.length} SOP{dueForReview.length === 1 ? "" : "s"} {dueForReview.length === 1 ? "hasn't" : "haven't"} been
+            reviewed in over {REVIEW_INTERVAL_DAYS} days. Open them and confirm they&apos;re still accurate.
+          </p>
+        </div>
+      )}
 
       <NewSopForm disabled={disabled} disabledReason={disabledReason} />
 
@@ -78,15 +94,22 @@ export default async function DashboardPage() {
                 <div>
                   <h3 className="font-semibold text-slate-900">{sop.title}</h3>
                   {sop.category && <p className="mt-1 text-xs text-slate-500">{sop.category}</p>}
-                  <span
-                    className={`mt-2 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      sop.status === "PUBLISHED"
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {sop.status}
-                  </span>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                        sop.status === "PUBLISHED"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {sop.status}
+                    </span>
+                    {needsReview(sop.lastReviewedAt) && (
+                      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        Review due
+                      </span>
+                    )}
+                  </div>
                 </div>
               </Link>
             ))}

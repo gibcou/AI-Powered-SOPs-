@@ -88,3 +88,43 @@ Write a complete SOP for this process: a concise title, the right category (e.g.
 
   return toolUse.input as GeneratedSop;
 }
+
+export async function askAssistant(params: {
+  businessName: string;
+  question: string;
+  sops: { title: string; category: string | null; purpose: string | null; scope: string | null; steps: { title: string; details: string }[] }[];
+}): Promise<string> {
+  const library = params.sops
+    .map((sop, i) => {
+      const steps = sop.steps.map((s, j) => `    ${j + 1}. ${s.title}: ${s.details}`).join("\n");
+      return `SOP ${i + 1}: ${sop.title}${sop.category ? ` (${sop.category})` : ""}
+  Purpose: ${sop.purpose ?? "n/a"}
+  Scope: ${sop.scope ?? "n/a"}
+  Steps:
+${steps}`;
+    })
+    .join("\n\n");
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    messages: [
+      {
+        role: "user",
+        content: `You are an operations assistant for ${params.businessName}. Answer the user's question using ONLY the standard operating procedures below. If the answer isn't covered by these SOPs, say so clearly and suggest which SOP might need to be created or updated. Be concise and practical.
+
+SOP LIBRARY:
+${library || "(no SOPs yet)"}
+
+QUESTION:
+${params.question}`,
+      },
+    ],
+  });
+
+  const text = message.content.find((block) => block.type === "text");
+  if (!text || text.type !== "text") {
+    throw new Error("Claude did not return a text answer");
+  }
+  return text.text;
+}
