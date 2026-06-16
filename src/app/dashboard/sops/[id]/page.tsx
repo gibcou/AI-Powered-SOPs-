@@ -10,7 +10,7 @@ export default async function SopPage({ params }: { params: Promise<{ id: string
   const businessId = session!.user.businessId!;
 
   const access = await getBusinessWithAccess(businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     redirect("/dashboard");
   }
 

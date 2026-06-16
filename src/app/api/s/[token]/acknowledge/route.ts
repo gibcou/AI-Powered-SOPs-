@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   }
 
   const access = await getBusinessWithAccess(sop.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return NextResponse.json({ error: "This SOP is no longer available." }, { status: 403 });
   }
 

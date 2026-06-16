@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   const access = await getBusinessWithAccess(session.user.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
 

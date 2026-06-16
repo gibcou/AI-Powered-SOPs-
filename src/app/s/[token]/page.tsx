@@ -10,7 +10,7 @@ export default async function SharedSopPage({ params }: { params: Promise<{ toke
   if (!sop) notFound();
 
   const access = await getBusinessWithAccess(sop.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
         <div className="max-w-sm text-center">

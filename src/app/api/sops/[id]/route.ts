@@ -16,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const access = await getBusinessWithAccess(session.user.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
   const { id } = await params;
@@ -43,7 +43,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const access = await getBusinessWithAccess(session.user.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
   const { id } = await params;

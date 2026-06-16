@@ -12,7 +12,7 @@ export async function GET() {
   }
 
   const access = await getBusinessWithAccess(session.user.businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return NextResponse.json({ error: "An active subscription is required." }, { status: 402 });
   }
 
@@ -38,17 +38,11 @@ export async function POST(request: Request) {
   if (!access) {
     return NextResponse.json({ error: "Business not found" }, { status: 404 });
   }
-  if (!access.hasActiveSubscription) {
-    return NextResponse.json(
-      { error: "An active subscription is required to generate SOPs." },
-      { status: 402 },
-    );
-  }
   if (!access.canCreateSop) {
-    return NextResponse.json(
-      { error: `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade to add more.` },
-      { status: 402 },
-    );
+    const msg = access.inFreeTrial
+      ? `You've used both free trial SOPs. Subscribe to a plan to generate more.`
+      : `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade to add more.`;
+    return NextResponse.json({ error: msg }, { status: 402 });
   }
 
   const json = await request.json();

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FileText, Lock, AlertTriangle } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getBusinessWithAccess, daysSince, REVIEW_INTERVAL_DAYS } from "@/lib/access";
+import { getBusinessWithAccess, daysSince, REVIEW_INTERVAL_DAYS, FREE_TRIAL_SOP_LIMIT } from "@/lib/access";
 import { NewSopForm } from "@/components/new-sop-form";
 
 function needsReview(lastReviewedAt: Date) {
@@ -18,7 +18,7 @@ export default async function DashboardPage() {
     prisma.sop.findMany({ where: { businessId }, orderBy: { updatedAt: "desc" } }),
   ]);
 
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return (
       <div className="space-y-8">
         <div>
@@ -51,7 +51,9 @@ export default async function DashboardPage() {
 
   const disabled = !access.canCreateSop;
   const disabledReason = disabled
-    ? `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade in Billing to add more.`
+    ? access.inFreeTrial
+      ? "You've used both of your free trial SOPs. Subscribe to a plan to create more."
+      : `You've reached your plan's limit of ${access.sopLimit} SOPs. Upgrade in Billing to add more.`
     : undefined;
 
   const dueForReview = sops.filter((sop) => needsReview(sop.lastReviewedAt));
@@ -61,9 +63,17 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900">SOP Library</h1>
         <p className="mt-1 text-sm text-slate-500">
-          {access.sopCount} of {access.sopLimit} SOPs used on the {access.plan?.name} plan
+          {access.inFreeTrial
+            ? `${access.sopCount} of ${access.sopLimit} free trial SOPs used`
+            : `${access.sopCount} of ${access.sopLimit} SOPs used on the ${access.plan?.name} plan`}
         </p>
       </div>
+
+      {access.inFreeTrial && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-800">
+          You&apos;re on a free trial: your first {FREE_TRIAL_SOP_LIMIT} SOPs are free. Subscribe anytime to unlock more.
+        </div>
+      )}
 
       {dueForReview.length > 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -75,7 +85,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <NewSopForm disabled={disabled} disabledReason={disabledReason} />
+      <NewSopForm disabled={disabled} disabledReason={disabledReason} showSubscribeLink={disabled && access.inFreeTrial} />
 
       <div>
         {sops.length === 0 ? (

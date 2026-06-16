@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, Loader2 } from "lucide-react";
 
-export function NewSopForm({ disabled, disabledReason }: { disabled: boolean; disabledReason?: string }) {
+export function NewSopForm({ disabled, disabledReason, showSubscribeLink }: { disabled: boolean; disabledReason?: string; showSubscribeLink?: boolean }) {
   const router = useRouter();
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,16 @@ export function NewSopForm({ disabled, disabledReason }: { disabled: boolean; di
         placeholder="e.g. How we onboard a new client: send the welcome packet, schedule a kickoff call, set up their project in our tool, and assign an account manager..."
         className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none disabled:bg-slate-100"
       />
-      {disabled && disabledReason && <p className="mt-2 text-sm text-amber-600">{disabledReason}</p>}
+      {disabled && disabledReason && (
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-amber-600">{disabledReason}</p>
+          {showSubscribeLink && (
+            <Link href="/dashboard/billing" className="text-sm font-semibold text-indigo-600 hover:underline">
+              Choose a plan →
+            </Link>
+          )}
+        </div>
+      )}
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       <button
         type="submit"

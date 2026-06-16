@@ -9,7 +9,7 @@ export default async function AssistantPage() {
   const businessId = session!.user.businessId!;
 
   const access = await getBusinessWithAccess(businessId);
-  if (!access?.hasActiveSubscription) {
+  if (!access?.hasAccess) {
     return (
       <div className="space-y-8">
         <div>
